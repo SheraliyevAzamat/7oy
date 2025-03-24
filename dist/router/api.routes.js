@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.apiRouter = void 0;
+const express_1 = require("express");
+const index_1 = require("./index");
+exports.apiRouter = (0, express_1.Router)();
+exports.apiRouter.use('/user', index_1.userRouter);
+exports.apiRouter.use('/country', index_1.countryRouter);
+exports.apiRouter.use('/merchantActivity', index_1.merchantActivityRouter);
+exports.apiRouter.use('/merchant', index_1.merchantRouter);
+exports.apiRouter.use('/orderItem', index_1.orderItemRouter);
+exports.apiRouter.use('/order', index_1.orderRouter);
+exports.apiRouter.use('/product', index_1.productRouter);

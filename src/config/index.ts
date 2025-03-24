@@ -1,2 +1,2 @@
-export * from "./db";
-export * from "./config";
+export * from "./config"
+export * from "./db"

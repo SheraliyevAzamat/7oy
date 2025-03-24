@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.merchantActivityRouter = void 0;
+const merchantActivity_controller_1 = require("../controller/merchantActivity.controller");
+const express_1 = require("express");
+exports.merchantActivityRouter = (0, express_1.Router)();
+exports.merchantActivityRouter.post('/', merchantActivity_controller_1.merchantActivityController.create);
+exports.merchantActivityRouter.get('/', merchantActivity_controller_1.merchantActivityController.getAll);
+exports.merchantActivityRouter.get('/:id', merchantActivity_controller_1.merchantActivityController.getOne);
+exports.merchantActivityRouter.put('/:id', merchantActivity_controller_1.merchantActivityController.update);
+exports.merchantActivityRouter.delete('/:id', merchantActivity_controller_1.merchantActivityController.delete);

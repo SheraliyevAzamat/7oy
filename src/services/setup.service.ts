@@ -1,19 +1,110 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { pool } from "../config";
+import { pool } from "../config/";
 
-export const setUpDB = async () => {
+//set up all tables
+export const setUp = async () => {
+  const createType = `CREATE TYPE product_status AS ENUM (
+    'out_of_stock',
+    'in_stock',
+    'running_low'
+  )`
+
+  const createTablecountryesQuery = ` CREATE TABLE IF NOT EXISTS countries (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    continent VARCHAR(50) NOT NULL
+)`;
+
+  const createTableUsersQuery = `CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    country_id INTEGER,
+    FOREIGN KEY (country_id) REFERENCES countries (id) ON DELETE SET NULL
+)`;
+
+  const createTableMerchantsQuery = `CREATE TABLE IF NOT EXISTS merchants (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    country_id INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    admin_id INTEGER NOT NULL,
+    FOREIGN KEY (admin_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (country_id) REFERENCES countries (id) ON DELETE SET NULL
+)`;
+
+  const createTableProductsQuery = `CREATE TABLE IF NOT EXISTS products (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    merchant_id INTEGER NOT NULL,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    status product_status DEFAULT 'in_stock',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY (merchant_id) REFERENCES ecommerce.merchants (id) ON DELETE CASCADE
+)`;
+
+  const createTableTagsQuery = `CREATE TABLE IF NOT EXISTS tags (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+)`;
+
+  const createTableProductTagsQuery = `CREATE TABLE IF NOT EXISTS product_tags (
+    tag_id INTEGER,
+    product_id INTEGER,
+    PRIMARY KEY (tag_id, product_id),
+    FOREIGN KEY (tag_id) REFERENCES ecommerce.tags (id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES ecommerce.products (id) ON DELETE CASCADE
+)`;
+
+  const createTableOrdersQuery = `CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    total DECIMAL(10, 2) DEFAULT 0.00,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+)`;
+
+  const createTableOrderItemsQuery = `CREATE TABLE IF NOT EXISTS order_items (
+    order_id INTEGER,
+    product_id INTEGER,
+    quantity INTEGER DEFAULT 1 CHECK (quantity > 0),
+    price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
+    PRIMARY KEY (order_id, product_id),
+    FOREIGN KEY (order_id) REFERENCES ecommerce.orders (id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES ecommerce.products (id)
+)`;
+const createTableMerchantActivityquery = `CREATE TABLE IF NOT EXISTS merchant_activity (
+    id SERIAL PRIMARY KEY,
+    merchant_id INTEGER,
+    country_id INTEGER,
+    start_date TIMESTAMPTZ NOT NULL,
+    end_date TIMESTAMPTZ,
+    FOREIGN KEY (merchant_id) REFERENCES ecommerce.merchants (id) ON DELETE CASCADE,
+    FOREIGN KEY (country_id) REFERENCES countries (id) ON DELETE SET NULL
+)`
   try {
-    const sqlQueries = await readFile(
-      join(__dirname, "..", "..", "db", "main.sql"),
-      "utf-8"
-    );
+    //use async/await to run queries in sequence
+    await Promise.all([
 
-    await pool.query(sqlQueries);
-    console.log("Database setup successful.");
+      pool.query(createTableProductsQuery),
+      pool.query(createTableTagsQuery),
+      pool.query(createTablecountryesQuery),
+      pool.query(createTableUsersQuery),
+      pool.query(createTableMerchantsQuery),
+      pool.query(createTableProductTagsQuery),
+      pool.query(createTableOrdersQuery),
+      pool.query(createTableOrderItemsQuery),
+      pool.query(createTableMerchantActivityquery),
+      pool.query(createType),
+
+    ]);
+    return "All tables created successfully!"
   } catch (error) {
-    console.error("Error setting up database:", error);
-  } finally {
-    await pool.end();
+    console.error("error creating tables", error);
+    throw new Error("error creating tables");
   }
 };

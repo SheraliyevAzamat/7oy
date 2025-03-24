@@ -1,13 +1,21 @@
-import { Pool } from "pg";
+import pg from "pg";
 import dotenv from "dotenv";
-import { config } from "./config";
 
 dotenv.config();
 
+const { Pool } = pg;
 export const pool = new Pool({
-  host: config.db.host,
-  port: config.db.port,
-  user: config.db.user,
-  password: config.db.password,
-  database: config.db.database,
+    user:"postgres",
+    host: "localhost",
+    database: "node_lib",
+    password: "azam4342",
+    port: 5433
 });
+
+pool.connect().then((client) => { 
+    console.log("Connected to PostgreSQL database");
+    client.release();
+})
+    .catch((err) => {
+        console.error('database connection error', err.stack);
+    })

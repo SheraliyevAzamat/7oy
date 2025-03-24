@@ -1,22 +1,28 @@
-import express, { Application, NextFunction, Request, Response } from "express";
-import { config } from "./config";
-import { appRouter } from "./routers";
+import express from 'express';
+import { config } from './config/index';
+import { countryRouter, merchantActivityRouter, merchantRouter, orderRouter, productRouter, setUpRouter, userRouter } from './router';
+import { apiRouter } from './router/api.routes';
+import { tagRouter } from './router/tag.routes';
+import { productTagRouter } from './router/productTag.routes';
 
-const app: Application = express();
+const app = express();
 
-const PORT = config.app.port || 4100;
-
+const PORT =  5001;
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use((error: any, req: Request, res: Response, next: NextFunction) => {
-  const status = error.status || 500;
-  const message = error.message || "Server error";
-  res.status(status).json({ message });
-});
 
-//ROUTER
-app.use(appRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/users", userRouter);
+app.use("/api/product-tags",productTagRouter);
+app.use("/api/products", productRouter);
+app.use("/api/tags", tagRouter);
+app.use("/api/merchant-activities", merchantActivityRouter);
+app.use("/api/merchants", merchantRouter);
+app.use("/api/countries", countryRouter);
+app.use("/setup", setUpRouter);
+app.use("/api", apiRouter);
+
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
+ 

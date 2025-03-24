@@ -1,2 +1,3 @@
-export * from "./mailer/nodemailser";
-export * from "./bcrypt/bcrypt.service";
+
+export * from "./bcrypt/bcrypt.service"
+export * from "./mailer/nodemailer"
